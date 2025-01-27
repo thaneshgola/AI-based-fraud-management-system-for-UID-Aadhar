@@ -178,7 +178,7 @@
             const uidChart = new Chart(document.getElementById('uidChart'), {
                 type: 'bar',
                 data: {
-                    labels: data.map(item => item.sr_no),
+                    labels: data.map(item => item.SrNo),
                     datasets: [{
                         label: 'UID Match Score',
                         data: uidData,
@@ -216,7 +216,7 @@
             const nameChart = new Chart(document.getElementById('nameChart'), {
                 type: 'pie',
                 data: {
-                    labels: data.map(item => `Name ${item.sr_no}`),
+                    labels: data.map(item => `Name ${item.SrNo}`),
                     datasets: [{
                         label: 'Name Match Score',
                         data: nameData,
@@ -238,7 +238,7 @@
             const addressChart = new Chart(document.getElementById('addressChart'), {
                 type: 'line', // Changed to 'line' from 'radar'
                 data: {
-                    labels: data.map(item => `Address ${item.sr_no}`),
+                    labels: data.map(item => `Address ${item.SrNo}`),
                     datasets: [{
                     label: 'Address Match Score',
                     data: addressData,

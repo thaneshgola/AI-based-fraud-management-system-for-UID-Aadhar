@@ -12,9 +12,13 @@ import numpy as np
 import json
 import sqlite3
 import tempfile
+import shutil
 
 
 app = Flask(__name__)
+
+# Use temporary directory for file operations
+TEMP_DIR = tempfile.gettempdir()
 
 def init_db():
     import sqlite3  # Ensure sqlite3 is imported
@@ -23,7 +27,7 @@ def init_db():
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
-            sr_no TEXT PRIMARY KEY NOT NULL,
+            SrNo TEXT PRIMARY KEY NOT NULL,
             name_match_score INTEGER,
             uid_match_score INTEGER,
             final_address_match_score INTEGER,
@@ -44,7 +48,7 @@ init_db()
 def add_user():
     try:
         data = request.json
-        sr_no = data.get('sr_no')
+        SrNo = data.get('SrNo')
         name_match_score = data.get('name_match_score')
         uid_match_score = data.get('uid_match_score')
         final_address_match_score = data.get('final_address_match_score')
@@ -59,9 +63,9 @@ def add_user():
         # matchScore = data.get('matchScore')
 
         # print("----", data, uid, name, matchScore)
-        print("----", data, sr_no, name_match_score, uid_match_score, final_address_match_score, overall_score, final_remarks, document_type, accepted_rejected)
+        print("----", data, SrNo, name_match_score, uid_match_score, final_address_match_score, overall_score, final_remarks, document_type, accepted_rejected)
         # Validate required fields
-        if not sr_no:
+        if not SrNo:
             return jsonify({"error": "SrNo is required"}), 400
 
         conn = sqlite3.connect('users.db')
@@ -69,9 +73,9 @@ def add_user():
 
         try:
             cursor.execute('''
-    INSERT INTO users (sr_no, name_match_score, uid_match_score, final_address_match_score, overall_score, final_remarks, document_type, accepted_rejected) 
+    INSERT INTO users (SrNo, name_match_score, uid_match_score, final_address_match_score, overall_score, final_remarks, document_type, accepted_rejected) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-''', (sr_no, name_match_score, uid_match_score, final_address_match_score, overall_score, final_remarks, document_type, accepted_rejected))
+''', (SrNo, name_match_score, uid_match_score, final_address_match_score, overall_score, final_remarks, document_type, accepted_rejected))
 
             conn.commit()
             return jsonify({"message": "User added successfully"}), 201
@@ -90,10 +94,10 @@ def get_users():
         cursor = conn.cursor()
 
         # Optional filtering by UID
-        sr_no = request.args.get('sr_no')
+        SrNo = request.args.get('SrNo')
         
-        if sr_no:
-            cursor.execute('SELECT * FROM users WHERE sr_no = ?', (sr_no,))
+        if SrNo:
+            cursor.execute('SELECT * FROM users WHERE SrNo = ?', (SrNo,))
         else:
             cursor.execute('SELECT * FROM users')
         
@@ -102,7 +106,7 @@ def get_users():
 
         # Convert to list of dictionaries
         user_list = [
-            {"sr_no": user[0], "name_match_score": user[1], "uid_match_score": user[2], "final_address_match_score": user[3], "overall_score": user[4], "final_remarks": user[5], "document_type": user[6], "accepted_rejected": user[7]} 
+            {"SrNo": user[0], "name_match_score": user[1], "uid_match_score": user[2], "final_address_match_score": user[3], "overall_score": user[4], "final_remarks": user[5], "document_type": user[6], "accepted_rejected": user[7]} 
             for user in users
         ]
 
@@ -120,7 +124,7 @@ def get_users():
 
 # class Result(db.Model):
 #     # id = db.Column(db.Integer, primary_key=True)  # Auto-incrementing ID
-#     sr_no = db.Column(db.String(50), primary_key=True, nullable=False)
+#     SrNo = db.Column(db.String(50), primary_key=True, nullable=False)
 #     name_match_score = db.Column(db.Float, nullable=False)
 #     uid_match_score = db.Column(db.Float, nullable=False)
 #     final_address_match_score = db.Column(db.Float, nullable=False)
@@ -130,7 +134,7 @@ def get_users():
 #     accepted_rejected = db.Column(db.String(20), nullable=False)
 
 #     def __repr__(self):
-#         return f'<Result {self.sr_no}>'
+#         return f'<Result {self.SrNo}>'
 
 
 app.config['UPLOAD_FOLDER'] = 'uploads/'
@@ -315,8 +319,42 @@ def download_results():
 def home():
     return render_template('index.html')
 
+DATABASE_PATH = 'users.db'
+def removeDb():
+    # Check if the database file exists
+    if os.path.exists(DATABASE_PATH):
+        try:
+            os.remove(DATABASE_PATH)
+            return jsonify({"message": "Database file deleted successfully"}), 200
+        except Exception as e:
+            return jsonify({"error": f"Failed to delete database file: {str(e)}"}), 500
+    else:
+        return jsonify({"message": "Database file does not exist"}), 404
+
+def delete_uploads(UPLOAD_FOLDER):
+    try:
+        # Check if the uploads folder exists
+        if os.path.exists(UPLOAD_FOLDER):
+            # Delete the contents of the folder
+            for filename in os.listdir(UPLOAD_FOLDER):
+                file_path = os.path.join(UPLOAD_FOLDER, filename)
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)  # Delete file or symbolic link
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)  # Delete directory and its contents
+
+            return jsonify({"message": "Uploads folder contents deleted successfully"}), 200
+        else:
+            return jsonify({"message": "Uploads folder does not exist"}), 404
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to delete uploads folder contents: {str(e)}"}), 500
+
 @app.route('/upload', methods=['POST'])
 def upload_files():
+    removeDb()
+    delete_uploads("uploads/")
+    init_db()
     if 'zipfile' in request.files and 'excelfile' in request.files:
         zip_file = request.files['zipfile']
         excel_file = request.files['excelfile']
@@ -324,6 +362,7 @@ def upload_files():
         # Save files
         zip_path = os.path.join(app.config['UPLOAD_FOLDER'], zip_file.filename)
         excel_path = os.path.join(app.config['UPLOAD_FOLDER'], excel_file.filename)
+        print(zip_path, excel_path)
         zip_file.save(zip_path)
         excel_file.save(excel_path)
 
@@ -331,7 +370,7 @@ def upload_files():
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(app.config['UPLOAD_FOLDER'])
 
-        image_paths = [os.path.join(app.config['UPLOAD_FOLDER'], f) for f in os.listdir(app.config['UPLOAD_FOLDER']) if f.endswith(('.jpg', '.png'))]
+        image_paths = [os.path.join(app.config['UPLOAD_FOLDER'], f) for f in os.listdir(app.config['UPLOAD_FOLDER']) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
         processed_results = {}
 
         for image_path in image_paths:
@@ -341,6 +380,7 @@ def upload_files():
                 extracted_data = process_image(image_path)
                 if extracted_data:
                     processed_results[key] = extracted_data
+        print(f"Processed Results: {processed_results}", image_paths)
 
         # Read Excel and compare data
         df = pd.read_excel(excel_path)
@@ -367,7 +407,7 @@ def upload_files():
         # print(comparison_results[['Name Match Score',  'UID Match Score', 'SrNo', 'Final Address Match Score', 'Overall Score', 'Final Remarks', 'Document Type',  'Accepted/Rejected']].to_dict(orient='records'))
         # for _, row in comparison_results.iterrows():
         #     result = Result(
-        #         sr_no=row['SrNo'],
+        #         SrNo=row['SrNo'],
         #         name_match_score=row['Name Match Score'] if not (row['Name Match Score'] == 'nan') else 0.0,
         #         uid_match_score=row['UID Match Score'] if not (row['UID Match Score'] == 'nan') else 0.0,
         #         final_address_match_score=row['Final Address Match Score'] if not (row['Final Address Match Score'] == 'nan') else 0.0,

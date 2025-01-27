@@ -38,14 +38,14 @@ function getNumbers(num) {
 }
 
 // database integration
-async function addUser(sr_no, name_match_score, uid_match_score, final_address_match_score, overall_score, final_remarks, document_type, accepted_rejected) {
+async function addUser(SrNo, name_match_score, uid_match_score, final_address_match_score, overall_score, final_remarks, document_type, accepted_rejected) {
     try {
         const response = await fetch('/add_user', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ sr_no, name_match_score, uid_match_score, final_address_match_score, overall_score, final_remarks, document_type, accepted_rejected })
+            body: JSON.stringify({ SrNo, name_match_score, uid_match_score, final_address_match_score, overall_score, final_remarks, document_type, accepted_rejected })
         });
 
         const data = await response.json();
@@ -62,9 +62,9 @@ async function addUser(sr_no, name_match_score, uid_match_score, final_address_m
 }
 
 // Function to get users (optionally filtered by SrNo)
-async function getUsers(srno = null) {
+async function getUsers(SrNo = null) {
     try {
-        const url = srno ? `/get_users?SrNo=${srno}` : '/get_users';
+        const url = SrNo ? `/get_users?SrNo=${SrNo}` : '/get_users';
         
         const response = await fetch(url);
         
@@ -140,7 +140,7 @@ function renderTableData(data) {
 
         // Create and append Aadhaar Number cell
         const SrNo = document.createElement('td');
-        SrNo.textContent = item["sr_no"] || 'N/A';
+        SrNo.textContent = item["SrNo"] || 'N/A';
         row.appendChild(SrNo);
 
         // Create and append Name cell
@@ -407,7 +407,7 @@ async function handleFileUpload() {
 function formatData(data) {
     return data.map(item => {
         return {
-            sr_no: item["sr_no"],
+            SrNo: item["SrNo"],
             ["Name Match Score"]: getNumbers(item.name_match_score),
             ["UID Match Score"]: getNumbers(item.uid_match_score),
             ["Final Address Match Score"]: getNumbers(item.final_address_match_score),
