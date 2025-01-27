@@ -46,7 +46,32 @@
     <!-- Dashboard Container -->
     <div class="dashboard-container">
         <!-- File Upload Section -->
+
         <section class="upload-section">
+            <h2>Upload Files</h2>
+            <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
+                <div class="file-boxes">
+                    <div class="file-box">
+                        <label for="zip-file">Upload Zip File (Aadhaar Images):</label>
+                        <input type="file" id="zip-file" accept=".zip" name="zip_file" required>
+                    </div>
+                    <div class="file-box">
+                        <label for="excel-file">Upload Excel File (Aadhaar Details):</label>
+                        <input type="file" id="excel-file" accept=".xlsx, .xls" name="excel_file" required>
+                    </div>
+                </div>
+                <button type="submit">Process Files</button>
+            </form>
+
+            <!-- Loading Indicator (Initially hidden) -->
+            <div id="loading" style="display: none;">
+                <p>Loading... Please wait...</p>
+            </div>
+        </section>
+        
+        
+        
+        <!-- <section class="upload-section">
             <h2>Upload Files</h2>
             <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
                 <label for="zip-file">Upload Zip File (Aadhaar Images):</label>
@@ -57,7 +82,24 @@
             
                 <button type="submit">Process Files</button>
             </form>            
-        </section>
+        </section> -->
+
+
+        <!-- <section class="upload-section">
+            <h2>Upload Files</h2>
+            <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
+                <div class="file-upload-box">
+                    <label for="zip-file">Upload Zip File (Aadhaar Images):</label>
+                    <input type="file" id="zip-file" accept=".zip" name="zip_file" required>
+                </div>
+                <div class="file-upload-box">
+                    <label for="excel-file">Upload Excel File (Aadhaar Details):</label>
+                    <input type="file" id="excel-file" accept=".xlsx, .xls" name="excel_file" required>
+                </div>
+                <button type="submit">Process Files</button>
+            </form>
+        </section> -->
+        
 
         <!-- Data Visualization Section -->
         <section id="data-analytics" class="data-section">

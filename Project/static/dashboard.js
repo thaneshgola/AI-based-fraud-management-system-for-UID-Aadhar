@@ -37,6 +37,52 @@ function getNumbers(num) {
     return 0;
 }
 
+// database integration
+async function addUser(sr_no, name_match_score, uid_match_score, final_address_match_score, overall_score, final_remarks, document_type, accepted_rejected) {
+    try {
+        const response = await fetch('/add_user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ sr_no, name_match_score, uid_match_score, final_address_match_score, overall_score, final_remarks, document_type, accepted_rejected })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to add user');
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Error adding user:', error);
+        throw error;
+    }
+}
+
+// Function to get users (optionally filtered by SrNo)
+async function getUsers(srno = null) {
+    try {
+        const url = srno ? `/get_users?SrNo=${srno}` : '/get_users';
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to fetch users');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+    }
+}
+
+
+
+
 function getAnalyticsData(data) {
     const analyticsData = {
         '% Match': 0,
@@ -73,8 +119,11 @@ function downloadResults() {
 }
 
 // Function to render data in the table
-function renderTableData(d) {
-    const data = sessionStorage.getItem('responseData') ? JSON.parse(sessionStorage.getItem('responseData')) : d;
+function renderTableData(data) {
+
+    // console.log("Render table Data: ", d);
+
+    // const data = sessionStorage.getItem('responseData') ? JSON.parse(sessionStorage.getItem('responseData')) : d;
     const tableBody = document.querySelector('#matching-scores-table tbody');
 
     if (!tableBody) {
@@ -91,7 +140,7 @@ function renderTableData(d) {
 
         // Create and append Aadhaar Number cell
         const SrNo = document.createElement('td');
-        SrNo.textContent = item["SrNo"] || 'N/A';
+        SrNo.textContent = item["sr_no"] || 'N/A';
         row.appendChild(SrNo);
 
         // Create and append Name cell
@@ -144,7 +193,13 @@ function renderTableData(d) {
 //     { aadhaarNumber: '3210 9876 5432', name: 'Charlie Davis', matchScore: 80 },
 // ];
 
-function updateAnalytics(data) {
+function updateAnalytics(d) {
+    // const analyticsData = sessionStorage.getItem('responseData') ? JSON.parse(sessionStorage.getItem('responseData')) : d;
+    const data = getAnalyticsData(d);
+    console.log(data);
+    // const data = sessionStorage.getItem('responseData') ? JSON.parse(sessionStorage.getItem('responseData')) : d;
+    // const analyticsData = document.querySelector('#analytics-section');
+
     const analyticsContainer = document.getElementById('analytics-section');
 
     if (!analyticsContainer) {
@@ -190,19 +245,23 @@ const analyticsData = {
     'Total Records': 250
 };
 
-// Function to handle file upload
-function handleFileUpload() {
+
+async function handleFileUpload() {
     const uploadForm = document.getElementById("upload-form");
     const zipFileInput = document.getElementById("zip-file");
     const excelFileInput = document.getElementById("excel-file");
+    const loadingIndicator = document.getElementById("loading"); // Get the loading indicator
 
     if (!uploadForm || !zipFileInput || !excelFileInput) {
-        console.error("Upload form or inputs are missing in the DOM.");
+        console.log("Upload form or inputs are missing in the DOM.");
         return;
     }
 
     uploadForm.addEventListener("submit", async (event) => {
         event.preventDefault();
+
+        // Show the loading indicator when upload starts
+        loadingIndicator.style.display = 'block';
 
         // Validate files
         const zipFile = zipFileInput.files[0];
@@ -210,6 +269,7 @@ function handleFileUpload() {
 
         if (!zipFile || !excelFile) {
             alert("Please upload both a ZIP file and an Excel file.");
+            loadingIndicator.style.display = 'none';  // Hide loading indicator if validation fails
             return;
         }
 
@@ -217,10 +277,12 @@ function handleFileUpload() {
         const zipFileName = zipFile.name.toLowerCase();
         if (!zipFileName.endsWith(".zip")) {
             alert("Invalid ZIP file. Please upload a valid .zip file.");
+            loadingIndicator.style.display = 'none';  // Hide loading indicator if validation fails
             return;
         }
         if (!["application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"].includes(excelFile.type)) {
             alert("Invalid Excel file. Please upload a valid .xlsx or .xls file.");
+            loadingIndicator.style.display = 'none';  // Hide loading indicator if validation fails
             return;
         }
 
@@ -242,30 +304,134 @@ function handleFileUpload() {
             const result = await response.json();
             console.log("Upload response:", result.results);
             renderTableData(result?.results);
-            updateAnalytics(getAnalyticsData(result?.results));
+            updateAnalytics(result?.results);
             responseData = result?.results;
-            sessionStorage.setItem('responseData', JSON.stringify(result?.results));
-            // updateCharts(result?.results);
-            // const result = await response.json();
-            // alert("Files uploaded successfully!");
-            console.log("Upload response:", response);
+            responseData.forEach(async (item) => {
+                await addUser(item["SrNo"], item["Name Match Score"], item["UID Match Score"], item["Final Address Match Score"], item["Overall Score"], item["Final Remarks"], item["Document Type"], item["Accepted/Rejected"]);
+            });
+            // sessionStorage.setItem('responseData', JSON.stringify(result?.results));
+
+            // Hide the loading indicator after the data is processed
+            loadingIndicator.style.display = 'none';
+
         } catch (error) {
             console.error("Error uploading files:", error);
             alert("Error uploading files. Please try again.");
+            loadingIndicator.style.display = 'none'; // Hide loading indicator if an error occurs
         }
     });
 }
 
 
+// Function to handle file upload
+// function handleFileUpload() {
+//     const uploadForm = document.getElementById("upload-form");
+//     const zipFileInput = document.getElementById("zip-file");
+//     const excelFileInput = document.getElementById("excel-file");
+//     const loadingIndicator = document.getElementById("loading"); // Get the loading indicator
+//     if (!uploadForm || !zipFileInput || !excelFileInput) {
+//         console.log("Upload form or inputs are missing in the DOM.");
+//         return;
+//     }
 
+//     uploadForm.addEventListener("submit", async (event) => {
+//         event.preventDefault();
+//         // Show the loading indicator when upload starts
+//         loadingIndicator.style.display = 'block';
+
+
+//         // Validate files
+//         const zipFile = zipFileInput.files[0];
+//         const excelFile = excelFileInput.files[0];
+
+//         if (!zipFile || !excelFile) {
+//             alert("Please upload both a ZIP file and an Excel file.");
+//             loadingIndicator.style.display = 'none';  // Hide loading indicator if validation fails
+//             return;
+//         }
+
+//         // Validate file types
+//         const zipFileName = zipFile.name.toLowerCase();
+//         if (!zipFileName.endsWith(".zip")) {
+//             alert("Invalid ZIP file. Please upload a valid .zip file.");
+//             loadingIndicator.style.display = 'none';  // Hide loading indicator if validation fails
+//             return;
+//         }
+//         if (!["application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"].includes(excelFile.type)) {
+//             alert("Invalid Excel file. Please upload a valid .xlsx or .xls file.");
+//             loadingIndicator.style.display = 'none';  // Hide loading indicator if validation fails
+//             return;
+//         }
+
+//         // Create FormData and append files
+//         const formData = new FormData();
+//         formData.append("zipfile", zipFile);
+//         formData.append("excelfile", excelFile);
+
+//         try {
+//             // Send files to the server
+//             const response = await fetch("/upload", {
+//                 method: "POST",
+//                 body: formData,
+//             });
+
+//             if (!response.ok) {
+//                 throw new Error(`Server responded with status: ${response.status}`);
+//             }
+//             // Hide spinner once the processing is done
+//             loadingSpinner.style.display = "none";
+
+//             const result = await response.json();
+//             console.log("Upload response:", result.results);
+//             renderTableData(result?.results);
+//             updateAnalytics(result?.results);
+//             responseData = result?.results;
+//             sessionStorage.setItem('responseData', JSON.stringify(result?.results));
+//             // updateCharts(result?.results);
+//             // const result = await response.json();
+//             // alert("Files uploaded successfully!");
+
+//             // Hide the loading indicator after the data is processed
+//             loadingIndicator.style.display = 'none';
+//             console.log("Upload response:", response);
+//         } catch (error) {
+//             loadingIndicator.style.display = 'none'; // Hide loading indicator if an error occurs
+//             console.error("Error uploading files:", error);
+//             alert("Error uploading files. Please try again.");
+//         }
+//     });
+// }
+
+
+
+function formatData(data) {
+    return data.map(item => {
+        return {
+            sr_no: item["sr_no"],
+            ["Name Match Score"]: getNumbers(item.name_match_score),
+            ["UID Match Score"]: getNumbers(item.uid_match_score),
+            ["Final Address Match Score"]: getNumbers(item.final_address_match_score),
+            ["Overall Score"]: getNumbers(item.overall_score),
+            ["Final Remarks"]: item.final_remarks,
+            ["Document Type"]: item.document_type,
+            ["Accepted/Rejected"]: item.accepted_rejected
+        };
+    });
+}
 
 // Apply the saved theme and handle other initialization tasks
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    const dbData = await getUsers();
+    console.log("dbData: ", dbData);
     const dataAnalyticsElement = document.getElementById('data-analytics');
+
     if (dataAnalyticsElement) {
-        if (sessionStorage.getItem('responseData')) {
+        if (dbData.length) {
             dataAnalyticsElement.style.display = 'block';
-            renderTableData(JSON.parse(sessionStorage.getItem('responseData')));
+            
+            updateAnalytics(formatData(dbData) || []);
+
+            renderTableData(formatData(dbData) || []);
         } else {
             dataAnalyticsElement.style.display = 'none';
         }

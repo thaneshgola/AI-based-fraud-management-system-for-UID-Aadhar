@@ -24,7 +24,7 @@
             <li><a href="about.html"><i class="fas fa-info-circle"></i> About</a></li>
         </ul>
         <div class="user-info">
-            <img src="https://via.placeholder.com/50" alt="Avatar" class="avatar">
+            <img src="/static/images/thanesh_profile.png" alt="Avatar" class="avatar">
             <span class="username">Thanesh Gola</span>
         </div>
     </div>
@@ -50,7 +50,32 @@
         </section>
     </div> -->
 
-    <div class="charts">
+    <div class="charts-grid">
+        <div class="chart" id="documentChartContainer">
+            <h3>Document Type Distribution</h3>
+            <canvas id="documentChart"></canvas>
+        </div>
+        <div class="chart" id="uidChartContainer">
+            <h3>UID Match Score Distribution</h3>
+            <canvas id="uidChart"></canvas>
+        </div>
+        <div class="chart" id="nameChartContainer">
+            <h3>Name Match Score Distribution</h3>
+            <canvas id="nameChart"></canvas>
+        </div>
+        <div class="chart" id="addressChartContainer">
+            <h3>Address Match Score Comparison</h3>
+            <canvas id="addressChart"></canvas>
+        </div>
+    </div>
+
+
+
+    <!-- <div class="charts">
+        <div class="chart" id="documentChartContainer">
+            <h3>Document Type Distribution</h3>
+            <canvas id="documentChart"></canvas>
+        </div>
         <div class="chart" id="uidChartContainer">
             <h3>UID Match Score Distribution</h3>
             <canvas id="uidChart"></canvas>
@@ -65,7 +90,7 @@
             <h3>Address Match Score Comparison</h3>
             <canvas id="addressChart"></canvas>
         </div>
-    </div>
+    </div> -->
 
     <!-- Footer -->
     <footer id="footer">
@@ -73,76 +98,286 @@
     </footer>
     <script src="/static/dashboard.js"></script>
     <script>
-        const data = sessionStorage.getItem('responseData') ? JSON.parse(sessionStorage.getItem('responseData')) : [];
+        async function fetchDataAndRenderCharts() {
+            const d = await getUsers();
+            const data = formatData(d);
+            // console.log("Analytics Data: ", formatData(data));
+            const documentData = data.map(item => item["Document Type"]);
             const uidData = data.map(item => item["UID Match Score"]);
             const nameData = data.map(item => item["Name Match Score"]);
-            const addressData = data.map(item => item["Address Match Score"]);
+            const addressData = data.map(item => item["Final Address Match Score"]);
+            console.log("Separate Data: ", documentData, uidData, nameData, addressData);
+            console.log("...", document.getElementById('documentChart'));
             console.log("...", document.getElementById('uidChart'));
             console.log("...", document.getElementById('nameChart'));
             console.log("...", document.getElementById('addressChart'));
-            // UID Match Score Bar Chart
+
+            // Prepare the data for Document Type Distribution
+            const documentTypeCounts = data.reduce((acc, item) => {
+                acc[item["Document Type"]] = (acc[item["Document Type"]] || 0) + 1;
+                return acc;
+            }, {});
+
+            // Extract labels and values
+            const documentLabels = Object.keys(documentTypeCounts);
+            const documentValues = Object.values(documentTypeCounts);
+
+            // Common chart settings
+            const commonOptions = {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#333',
+                            font: {
+                                size: 14,
+                                family: 'Arial, sans-serif',
+                            },
+                        },
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        titleFont: {
+                            size: 16,
+                            family: 'Arial, sans-serif',
+                        },
+                        bodyFont: {
+                            size: 14,
+                        },
+                    },
+                },
+                layout: {
+                    padding: 20,
+                },
+            };
+            const documentChart = new Chart(document.getElementById('documentChart'), {
+                type: 'pie',
+                data: {
+                    labels: documentLabels,
+                    datasets: [{
+                        label: 'Document Type',
+                        data: documentValues,
+                        backgroundColor: ['#FFC107', '#FF9800', '#4CAF50', '#2196F3'],
+                        borderColor: '#fff',
+                        borderWidth: 2,
+                    }],
+                },
+                options: {
+                    ...commonOptions,
+                    animation: {
+                        duration: 1500, // Animation duration in milliseconds
+                        easing: 'easeOutElastic', // Smooth elastic easing effect
+                    },
+                },
+            });
+            
+
             const uidChart = new Chart(document.getElementById('uidChart'), {
                 type: 'bar',
                 data: {
-                    labels: data.map(item => item.SrNo),
+                    labels: data.map(item => item.sr_no),
                     datasets: [{
                         label: 'UID Match Score',
                         data: uidData,
                         backgroundColor: '#4CAF50',
                         borderColor: '#388E3C',
-                        borderWidth: 1
-                    }]
+                        borderWidth: 1,
+                    }],
                 },
                 options: {
-                    responsive: true,
+                    ...commonOptions,
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeOutElastic',
+                    },
                     scales: {
                         y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#333',
+                            },
+                            grid: {
+                                color: '#e0e0e0',
+                            },
+                        },
+                        x: {
+                            ticks: {
+                                color: '#333',
+                            },
+                        },
+                    },
+                },
             });
 
-            // Name Match Score Pie Chart
+
             const nameChart = new Chart(document.getElementById('nameChart'), {
                 type: 'pie',
                 data: {
-                    labels: data.map(item => item.SrNo),
+                    labels: data.map(item => `Name ${item.sr_no}`),
                     datasets: [{
                         label: 'Name Match Score',
                         data: nameData,
-                        backgroundColor: ['#FFC107', '#FF9800', '#FF5722', '#9C27B0'],
-                        borderColor: '#ffffff',
-                        borderWidth: 2
-                    }]
+                        backgroundColor: ['#FF5722', '#9C27B0', '#03A9F4', '#8BC34A'],
+                        borderColor: '#fff',
+                        borderWidth: 2,
+                    }],
                 },
                 options: {
-                    responsive: true
-                }
+                    ...commonOptions,
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeOutElastic',
+                    },
+                },
             });
 
-            // Address Match Score Radar Chart
+
             const addressChart = new Chart(document.getElementById('addressChart'), {
-                type: 'radar',
+                type: 'line', // Changed to 'line' from 'radar'
                 data: {
-                    labels: data.map(item => item.SrNo),
+                    labels: data.map(item => `Address ${item.sr_no}`),
                     datasets: [{
-                        label: 'Address Match Score',
-                        data: addressData,
-                        backgroundColor: 'rgba(33, 150, 243, 0.2)',
-                        borderColor: '#2196F3',
-                        borderWidth: 1
-                    }]
+                    label: 'Address Match Score',
+                    data: addressData,
+                    backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                    borderColor: '#2196F3',
+                    borderWidth: 2,
+                    fill: true,
+                    }],
                 },
                 options: {
-                    responsive: true,
-                    scale: {
+                    ...commonOptions,
+                    scales: {
+                    y: {
+                        beginAtZero: true,
                         ticks: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
+                        color: '#333',
+                        },
+                        grid: {
+                        color: '#e0e0e0',
+                        },
+                    },
+                    },
+                },
+                });
+
+            // const addressChart = new Chart(document.getElementById('addressChart'), {
+            //     type: 'radar',
+            //     data: {
+            //         labels: data.map(item => `Address ${item.SrNo}`),
+            //         datasets: [{
+            //             label: 'Address Match Score',
+            //             data: addressData,
+            //             backgroundColor: 'rgba(33, 150, 243, 0.2)',
+            //             borderColor: '#2196F3',
+            //             borderWidth: 2,
+            //         }],
+            //     },
+            //     options: {
+            //         ...commonOptions,
+            //         animation: {
+            //             duration: 1500,
+            //             easing: 'easeOutElastic',
+            //         },
+            //         scales: {
+            //             r: {
+            //                 ticks: {
+            //                     color: '#333',
+            //                 },
+            //                 grid: {
+            //                     color: '#e0e0e0',
+            //                 },
+            //             },
+            //         },
+            //     },
+            // });
+
+
+            // Create the Document Type Pie Chart
+            // const documentChart = new Chart(document.getElementById('documentChart'), {
+            //     type: 'pie',
+            //     data: {
+            //         labels: documentLabels,
+            //         datasets: [{
+            //             label: 'Document Type',
+            //             data: documentValues,
+            //             backgroundColor: ['#FFC107', '#FF9800', '#FF5722', '#9C27B0'],
+            //             borderColor: '#ffffff',
+            //             borderWidth: 2
+            //         }]
+            //     },
+            //     options: {
+            //         responsive: true
+            //     }
+            // });
+            // UID Match Score Bar Chart
+            // const uidChart = new Chart(document.getElementById('uidChart'), {
+            //     type: 'bar',
+            //     data: {
+            //         labels: data.map(item => item.SrNo),
+            //         datasets: [{
+            //             label: 'UID Match Score',
+            //             data: uidData,
+            //             backgroundColor: '#4CAF50',
+            //             borderColor: '#388E3C',
+            //             borderWidth: 1
+            //         }]
+            //     },
+            //     options: {
+            //         responsive: true,
+            //         scales: {
+            //             y: {
+            //                 beginAtZero: true
+            //             }
+            //         }
+            //     }
+            // });
+
+//             // Name Match Score Pie Chart
+//             const nameChart = new Chart(document.getElementById('nameChart'), {
+//                 type: 'pie',
+//                 data: {
+//                     labels: data.map(item => item.SrNo),
+//                     datasets: [{
+//                         label: 'Name Match Score',
+//                         data: nameData,
+//                         backgroundColor: ['#FFC107', '#FF9800', '#FF5722', '#9C27B0'],
+//                         borderColor: '#ffffff',
+//                         borderWidth: 2
+//                     }]
+//                 },
+//                 options: {
+//                     responsive: true
+//                 }
+//             });
+// console.log("addressData", addressData, data);
+//             // Address Match Score Radar Chart
+//             const addressChart = new Chart(document.getElementById('addressChart'), {
+//                 type: 'radar',
+//                 data: {
+//                     labels: data.map(item => item.SrNo),
+//                     datasets: [{
+//                         label: 'Final Address Match Score',
+//                         data: addressData,
+//                         backgroundColor: 'rgba(33, 150, 243, 0.2)',
+//                         borderColor: '#2196F3',
+//                         borderWidth: 1
+//                     }]
+//                 },
+//                 options: {
+//                     responsive: true,
+//                     scale: {
+//                         ticks: {
+//                             beginAtZero: true
+//                         }
+//                     }
+//                 }
+//             });
+        }
+        fetchDataAndRenderCharts();
     </script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
     
