@@ -42,14 +42,6 @@
         </button>
     </header>
 
-    <!-- Analytics Content -->
-    <!-- <div class="dashboard-container">
-        <section class="analytics-section">
-            <h2>Aadhaar Data Analytics</h2>
-            <canvas id="analytics-chart"></canvas>
-        </section>
-    </div> -->
-
     <div class="charts-grid">
         <div class="chart" id="documentChartContainer">
             <h3>Document Type Distribution</h3>
@@ -68,29 +60,6 @@
             <canvas id="addressChart"></canvas>
         </div>
     </div>
-
-
-
-    <!-- <div class="charts">
-        <div class="chart" id="documentChartContainer">
-            <h3>Document Type Distribution</h3>
-            <canvas id="documentChart"></canvas>
-        </div>
-        <div class="chart" id="uidChartContainer">
-            <h3>UID Match Score Distribution</h3>
-            <canvas id="uidChart"></canvas>
-        </div>
-
-        <div class="chart" id="nameChartContainer">
-            <h3>Name Match Score Distribution</h3>
-            <canvas id="nameChart"></canvas>
-        </div>
-
-        <div class="chart" id="addressChartContainer">
-            <h3>Address Match Score Comparison</h3>
-            <canvas id="addressChart"></canvas>
-        </div>
-    </div> -->
 
     <!-- Footer -->
     <footer id="footer">
@@ -174,7 +143,6 @@
                 },
             });
             
-
             const uidChart = new Chart(document.getElementById('uidChart'), {
                 type: 'bar',
                 data: {
@@ -212,7 +180,6 @@
                 },
             });
 
-
             const nameChart = new Chart(document.getElementById('nameChart'), {
                 type: 'pie',
                 data: {
@@ -233,7 +200,6 @@
                     },
                 },
             });
-
 
             const addressChart = new Chart(document.getElementById('addressChart'), {
                 type: 'line', // Changed to 'line' from 'radar'
@@ -263,125 +229,8 @@
                     },
                 },
                 });
-
-            // const addressChart = new Chart(document.getElementById('addressChart'), {
-            //     type: 'radar',
-            //     data: {
-            //         labels: data.map(item => `Address ${item.SrNo}`),
-            //         datasets: [{
-            //             label: 'Address Match Score',
-            //             data: addressData,
-            //             backgroundColor: 'rgba(33, 150, 243, 0.2)',
-            //             borderColor: '#2196F3',
-            //             borderWidth: 2,
-            //         }],
-            //     },
-            //     options: {
-            //         ...commonOptions,
-            //         animation: {
-            //             duration: 1500,
-            //             easing: 'easeOutElastic',
-            //         },
-            //         scales: {
-            //             r: {
-            //                 ticks: {
-            //                     color: '#333',
-            //                 },
-            //                 grid: {
-            //                     color: '#e0e0e0',
-            //                 },
-            //             },
-            //         },
-            //     },
-            // });
-
-
-            // Create the Document Type Pie Chart
-            // const documentChart = new Chart(document.getElementById('documentChart'), {
-            //     type: 'pie',
-            //     data: {
-            //         labels: documentLabels,
-            //         datasets: [{
-            //             label: 'Document Type',
-            //             data: documentValues,
-            //             backgroundColor: ['#FFC107', '#FF9800', '#FF5722', '#9C27B0'],
-            //             borderColor: '#ffffff',
-            //             borderWidth: 2
-            //         }]
-            //     },
-            //     options: {
-            //         responsive: true
-            //     }
-            // });
-            // UID Match Score Bar Chart
-            // const uidChart = new Chart(document.getElementById('uidChart'), {
-            //     type: 'bar',
-            //     data: {
-            //         labels: data.map(item => item.SrNo),
-            //         datasets: [{
-            //             label: 'UID Match Score',
-            //             data: uidData,
-            //             backgroundColor: '#4CAF50',
-            //             borderColor: '#388E3C',
-            //             borderWidth: 1
-            //         }]
-            //     },
-            //     options: {
-            //         responsive: true,
-            //         scales: {
-            //             y: {
-            //                 beginAtZero: true
-            //             }
-            //         }
-            //     }
-            // });
-
-//             // Name Match Score Pie Chart
-//             const nameChart = new Chart(document.getElementById('nameChart'), {
-//                 type: 'pie',
-//                 data: {
-//                     labels: data.map(item => item.SrNo),
-//                     datasets: [{
-//                         label: 'Name Match Score',
-//                         data: nameData,
-//                         backgroundColor: ['#FFC107', '#FF9800', '#FF5722', '#9C27B0'],
-//                         borderColor: '#ffffff',
-//                         borderWidth: 2
-//                     }]
-//                 },
-//                 options: {
-//                     responsive: true
-//                 }
-//             });
-// console.log("addressData", addressData, data);
-//             // Address Match Score Radar Chart
-//             const addressChart = new Chart(document.getElementById('addressChart'), {
-//                 type: 'radar',
-//                 data: {
-//                     labels: data.map(item => item.SrNo),
-//                     datasets: [{
-//                         label: 'Final Address Match Score',
-//                         data: addressData,
-//                         backgroundColor: 'rgba(33, 150, 243, 0.2)',
-//                         borderColor: '#2196F3',
-//                         borderWidth: 1
-//                     }]
-//                 },
-//                 options: {
-//                     responsive: true,
-//                     scale: {
-//                         ticks: {
-//                             beginAtZero: true
-//                         }
-//                     }
-//                 }
-//             });
         }
         fetchDataAndRenderCharts();
     </script>
-    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
-    
-
 </body>
-
 </html>

@@ -56,14 +56,8 @@ def add_user():
         final_remarks = data.get('final_remarks')
         document_type = data.get('document_type')
         accepted_rejected = data.get('accepted_rejected')
-        
 
-        # uid = data.get('uid')
-        # name = data.get('name')
-        # matchScore = data.get('matchScore')
-
-        # print("----", data, uid, name, matchScore)
-        print("----", data, SrNo, name_match_score, uid_match_score, final_address_match_score, overall_score, final_remarks, document_type, accepted_rejected)
+        # print("----", data, SrNo, name_match_score, uid_match_score, final_address_match_score, overall_score, final_remarks, document_type, accepted_rejected)
         # Validate required fields
         if not SrNo:
             return jsonify({"error": "SrNo is required"}), 400
@@ -114,28 +108,6 @@ def get_users():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-
-
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Results.db'  # Database file
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Avoids warning messages
-# db = SQLAlchemy(app)
-
-# class Result(db.Model):
-#     # id = db.Column(db.Integer, primary_key=True)  # Auto-incrementing ID
-#     SrNo = db.Column(db.String(50), primary_key=True, nullable=False)
-#     name_match_score = db.Column(db.Float, nullable=False)
-#     uid_match_score = db.Column(db.Float, nullable=False)
-#     final_address_match_score = db.Column(db.Float, nullable=False)
-#     overall_score = db.Column(db.Float, nullable=False)
-#     final_remarks = db.Column(db.String(255), nullable=False)
-#     document_type = db.Column(db.String(50), nullable=False)
-#     accepted_rejected = db.Column(db.String(20), nullable=False)
-
-#     def __repr__(self):
-#         return f'<Result {self.SrNo}>'
-
 
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['RESULTS_FOLDER'] = 'results/'
@@ -362,7 +334,7 @@ def upload_files():
         # Save files
         zip_path = os.path.join(app.config['UPLOAD_FOLDER'], zip_file.filename)
         excel_path = os.path.join(app.config['UPLOAD_FOLDER'], excel_file.filename)
-        print(zip_path, excel_path)
+        # print(zip_path, excel_path)
         zip_file.save(zip_path)
         excel_file.save(excel_path)
 
@@ -380,7 +352,7 @@ def upload_files():
                 extracted_data = process_image(image_path)
                 if extracted_data:
                     processed_results[key] = extracted_data
-        print(f"Processed Results: {processed_results}", image_paths)
+        # print(f"Processed Results: {processed_results}", image_paths)
 
         # Read Excel and compare data
         df = pd.read_excel(excel_path)
@@ -388,40 +360,11 @@ def upload_files():
         comparison_results = compare_data(df, processed_results)
         comparison_results['Accepted/Rejected'] = np.where(comparison_results['Final Remarks'] == 'All matched', 'Accepted', 'Rejected')
 
-        # comparison_results.fillna({
-        #     'Name Match Score': 0.0,
-        #     'UID Match Score': 0.0,
-        #     'Final Address Match Score': 0.0,
-        #     'Overall Score': 0.0,
-        #     'Final Remarks': 'N/A',
-        #     'Document Type': 'Unknown',
-        #     'Accepted/Rejected': 'Pending'
-        # }, inplace=True)
-
         # Save results to a new Excel file
         results_df = pd.DataFrame(comparison_results)
         os.makedirs(app.config['RESULTS_FOLDER'], exist_ok=True)
         results_file_path = os.path.join(app.config['RESULTS_FOLDER'], 'results.xlsx')
         results_df.to_excel(results_file_path, index=False)
-
-        # print(comparison_results[['Name Match Score',  'UID Match Score', 'SrNo', 'Final Address Match Score', 'Overall Score', 'Final Remarks', 'Document Type',  'Accepted/Rejected']].to_dict(orient='records'))
-        # for _, row in comparison_results.iterrows():
-        #     result = Result(
-        #         SrNo=row['SrNo'],
-        #         name_match_score=row['Name Match Score'] if not (row['Name Match Score'] == 'nan') else 0.0,
-        #         uid_match_score=row['UID Match Score'] if not (row['UID Match Score'] == 'nan') else 0.0,
-        #         final_address_match_score=row['Final Address Match Score'] if not (row['Final Address Match Score'] == 'nan') else 0.0,
-        #         overall_score=row['Overall Score'] if not (row['Overall Score'] == 'nan') else 0.0,
-        #         final_remarks=row['Final Remarks'] if not pd.isna(row['Final Remarks']) else 'N/A',
-        #         document_type=row['Document Type'] if not pd.isna(row['Document Type']) else 'Unknown',
-        #         accepted_rejected=row['Accepted/Rejected'] if not pd.isna(row['Accepted/Rejected']) else 'Pending'
-        #     )
-        #     db.session.add(result)
-        # db.session.commit()
-
-
-
-
 
         return jsonify({"message": "Files processed successfully!", "results": comparison_results[['Name Match Score',  'UID Match Score', 'SrNo', 'Final Address Match Score', 'Overall Score', 'Final Remarks', 'Document Type',  'Accepted/Rejected']].to_dict(orient='records')})
 

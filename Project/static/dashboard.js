@@ -184,15 +184,6 @@ function renderTableData(data) {
     document.getElementById('data-analytics').style.display = 'block';
 }
 
-// Example response data
-// const responseData = [
-//     { aadhaarNumber: '1234 5678 9012', name: 'John Doe', matchScore: 95 },
-//     { aadhaarNumber: '9876 5432 1098', name: 'Jane Smith', matchScore: 85 },
-//     { aadhaarNumber: '4567 8901 2345', name: 'Alice Johnson', matchScore: 75 },
-//     { aadhaarNumber: '7890 1234 5678', name: 'Bob Brown', matchScore: 90 },
-//     { aadhaarNumber: '3210 9876 5432', name: 'Charlie Davis', matchScore: 80 },
-// ];
-
 function updateAnalytics(d) {
     // const analyticsData = sessionStorage.getItem('responseData') ? JSON.parse(sessionStorage.getItem('responseData')) : d;
     const data = getAnalyticsData(d);
@@ -321,88 +312,6 @@ async function handleFileUpload() {
         }
     });
 }
-
-
-// Function to handle file upload
-// function handleFileUpload() {
-//     const uploadForm = document.getElementById("upload-form");
-//     const zipFileInput = document.getElementById("zip-file");
-//     const excelFileInput = document.getElementById("excel-file");
-//     const loadingIndicator = document.getElementById("loading"); // Get the loading indicator
-//     if (!uploadForm || !zipFileInput || !excelFileInput) {
-//         console.log("Upload form or inputs are missing in the DOM.");
-//         return;
-//     }
-
-//     uploadForm.addEventListener("submit", async (event) => {
-//         event.preventDefault();
-//         // Show the loading indicator when upload starts
-//         loadingIndicator.style.display = 'block';
-
-
-//         // Validate files
-//         const zipFile = zipFileInput.files[0];
-//         const excelFile = excelFileInput.files[0];
-
-//         if (!zipFile || !excelFile) {
-//             alert("Please upload both a ZIP file and an Excel file.");
-//             loadingIndicator.style.display = 'none';  // Hide loading indicator if validation fails
-//             return;
-//         }
-
-//         // Validate file types
-//         const zipFileName = zipFile.name.toLowerCase();
-//         if (!zipFileName.endsWith(".zip")) {
-//             alert("Invalid ZIP file. Please upload a valid .zip file.");
-//             loadingIndicator.style.display = 'none';  // Hide loading indicator if validation fails
-//             return;
-//         }
-//         if (!["application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"].includes(excelFile.type)) {
-//             alert("Invalid Excel file. Please upload a valid .xlsx or .xls file.");
-//             loadingIndicator.style.display = 'none';  // Hide loading indicator if validation fails
-//             return;
-//         }
-
-//         // Create FormData and append files
-//         const formData = new FormData();
-//         formData.append("zipfile", zipFile);
-//         formData.append("excelfile", excelFile);
-
-//         try {
-//             // Send files to the server
-//             const response = await fetch("/upload", {
-//                 method: "POST",
-//                 body: formData,
-//             });
-
-//             if (!response.ok) {
-//                 throw new Error(`Server responded with status: ${response.status}`);
-//             }
-//             // Hide spinner once the processing is done
-//             loadingSpinner.style.display = "none";
-
-//             const result = await response.json();
-//             console.log("Upload response:", result.results);
-//             renderTableData(result?.results);
-//             updateAnalytics(result?.results);
-//             responseData = result?.results;
-//             sessionStorage.setItem('responseData', JSON.stringify(result?.results));
-//             // updateCharts(result?.results);
-//             // const result = await response.json();
-//             // alert("Files uploaded successfully!");
-
-//             // Hide the loading indicator after the data is processed
-//             loadingIndicator.style.display = 'none';
-//             console.log("Upload response:", response);
-//         } catch (error) {
-//             loadingIndicator.style.display = 'none'; // Hide loading indicator if an error occurs
-//             console.error("Error uploading files:", error);
-//             alert("Error uploading files. Please try again.");
-//         }
-//     });
-// }
-
-
 
 function formatData(data) {
     return data.map(item => {
